@@ -2,6 +2,7 @@ package dto;
 
 import java.util.Objects;
 
+
 public class CurrencyDto {
     private final Integer id;
     private final String name;
@@ -46,11 +47,11 @@ public class CurrencyDto {
 
     @Override
     public String toString() {
-        return "CurrencyDto{" +
-               "id=" + id +
-               ", name='" + name + '\'' +
-               ", code='" + code + '\'' +
-               ", sign='" + sign + '\'' +
-               '}';
+        return "{"
+               + "\"id\":" + id + ","
+               + "\"name\":\"" + name + "\","
+               + "\"code\":\"" + code + "\","
+               + "\"sign\":\"" + sign + "\""
+               + "}";
     }
 }

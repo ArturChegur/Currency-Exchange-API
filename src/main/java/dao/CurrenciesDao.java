@@ -13,7 +13,7 @@ import java.util.List;
 public class CurrenciesDao {
 
     private static final CurrenciesDao INSTANCE = new CurrenciesDao();
-    private static final String FIND_ALL = "SELECT * FROM main.currencies";
+    private static final String FIND_ALL = "SELECT * FROM currencies";
 
     private CurrenciesDao() {
     }
@@ -24,7 +24,7 @@ public class CurrenciesDao {
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Currency> currencies = new ArrayList<>();
             while (resultSet.next()) {
-                currencies.add(buildFlight(resultSet));
+                currencies.add(buildCurrency(resultSet));
             }
             return currencies;
         } catch (SQLException e) {
@@ -32,11 +32,11 @@ public class CurrenciesDao {
         }
     }
 
-    private Currency buildFlight(ResultSet resultSet) throws SQLException {
-        return new Currency(resultSet.getObject("id", Integer.class),
-                resultSet.getObject("code", String.class),
-                resultSet.getObject("fullName", String.class),
-                resultSet.getObject("sign", String.class));
+    private Currency buildCurrency(ResultSet resultSet) throws SQLException {
+        return new Currency(resultSet.getInt("id"),
+                resultSet.getString("code"),
+                resultSet.getString("full_name"),
+                resultSet.getString("sign"));
     }
 
     public static CurrenciesDao getInstance() {
