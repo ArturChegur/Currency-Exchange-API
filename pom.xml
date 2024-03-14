@@ -16,7 +16,14 @@
             <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.34.0</version> <!-- Укажите здесь актуальную версию -->
+        </dependency>
     </dependencies>
+
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
