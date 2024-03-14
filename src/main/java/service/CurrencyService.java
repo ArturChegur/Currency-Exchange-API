@@ -2,8 +2,10 @@ package service;
 
 import dao.CurrenciesDao;
 import dto.CurrencyDto;
+import entity.Currency;
 
 import java.util.List;
+import java.util.Optional;
 
 
 import static java.util.stream.Collectors.toList;
@@ -23,6 +25,18 @@ public class CurrencyService {
                         currency.getCode(),
                         currency.getSign()
                 )).collect(toList());
+    }
+
+    public Optional<CurrencyDto> findCurrencyByCode(String currencyCode) {
+        Optional<Currency> resultValue = Optional.ofNullable(currenciesDao.findCurrencyByCode(currencyCode));
+        if (resultValue.isPresent()) {
+            Currency currency = resultValue.get();
+            return Optional.of(new CurrencyDto(currency.getId(),
+                    currency.getFullName(),
+                    currency.getCode(),
+                    currency.getSign()));
+        }
+        return Optional.empty();
     }
 
     public static CurrencyService getInstance() {

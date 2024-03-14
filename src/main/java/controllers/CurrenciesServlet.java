@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.CurrencyService;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 
 @WebServlet("/currencies")
@@ -18,16 +17,20 @@ public class CurrenciesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        try (var printWriter= resp.getWriter()) {
+        StringBuilder jsonBuilder = new StringBuilder("[");
+        try (var printWriter = resp.getWriter()) {
             currencyService.findAll().forEach(currencyDto -> {
-                printWriter.write(currencyDto.toString());
+                jsonBuilder.append(currencyDto.toString()).append(",");
             });
+            if (jsonBuilder.length() > 1) {
+                jsonBuilder.deleteCharAt(jsonBuilder.length() - 1);
+            }
+            printWriter.write(jsonBuilder.append("]").toString());
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
+        //todo post method in localhost:8080/currencies endpoint
     }
 }
