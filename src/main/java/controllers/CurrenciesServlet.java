@@ -16,6 +16,8 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        //todo прописать все коды ошибок научится пробрасывать их с самого низа
+        // 200 если все в порядке и 500 если проблемы на стороне сервера
         resp.setContentType("application/json");
         StringBuilder jsonBuilder = new StringBuilder("[");
         try (var printWriter = resp.getWriter()) {

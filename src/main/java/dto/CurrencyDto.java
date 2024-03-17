@@ -37,12 +37,12 @@ public class CurrencyDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CurrencyDto that = (CurrencyDto) o;
-        return Objects.equals(id, that.id) && Objects.equals(name, that.name) && Objects.equals(code, that.code) && Objects.equals(sign, that.sign);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, code, sign);
+        return Objects.hash(id);
     }
 
     @Override

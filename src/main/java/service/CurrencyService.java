@@ -7,8 +7,8 @@ import entity.Currency;
 import java.util.List;
 import java.util.Optional;
 
-
 import static java.util.stream.Collectors.toList;
+
 
 public class CurrencyService {
     private static final CurrencyService INSTANCE = new CurrencyService();
