@@ -1,6 +1,7 @@
 package controllers;
 
 import dto.CurrencyDto;
+import dto.ExchangeRateDto;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.ExchangeRateService;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -19,27 +21,21 @@ public class ExchangeRateServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("application/json");
-
-        String[] uriSegments = req.getRequestURI().split("/");
-        System.out.println(Arrays.toString(uriSegments));
-        try (var printWriter = resp.getWriter()) {
-            if (uriSegments.length > 2) {
-                String exchangeRateCodePair = uriSegments[uriSegments.length - 1];
-                // доделать отправку раздельно парамтеров для метода поиска валюты по кодам
-                Optional<CurrencyDto> currencyDto = exchangeRateService.findByCodePair();
-                if (currencyDto.isPresent()) {
-                    printWriter.write(currencyDto.get().toString());
+        String pathInfo = req.getPathInfo();
+        if (pathInfo != null && pathInfo.length() == 7) {
+            String currencies = pathInfo.substring(1);
+            String baseCurrency = currencies.substring(0, 3);
+            String targetCurrency = currencies.substring(3);
+            try (var printWriter = resp.getWriter()) {
+                Optional<ExchangeRateDto> exchangeRateDto = Optional.ofNullable(exchangeRateService.findByCodePair(baseCurrency, targetCurrency));
+                if (exchangeRateDto.isPresent()) {
+                    printWriter.write(exchangeRateDto.get().toString());
                 } else {
                     resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid currency code");
                 }
-            } else {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid currency endpoint");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-        }
-        try (var printWriter = resp.getWriter()) {
-            exchangeRateService.findAll().forEach(exchangeRateDto -> {
-                jsonBuilder.append(exchangeRateDto.toString()).append(",");
-            });
         }
     }
 }

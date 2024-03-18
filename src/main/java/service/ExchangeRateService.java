@@ -7,6 +7,7 @@ import dto.ExchangeRateDto;
 import entity.Currency;
 import entity.ExchangeRate;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -26,8 +27,8 @@ public class ExchangeRateService {
                 .collect(toList());
     }
 
-    public ExchangeRateDto findByCodePair(String baseCurrencyCode, String targetCurrencyCode) {
-        return null; //todo
+    public ExchangeRateDto findByCodePair(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
+        return buildExchangeRateDto(exchangeRateDao.findByCodePair(baseCurrencyCode, targetCurrencyCode));
     }
 
     private ExchangeRateDto buildExchangeRateDto(ExchangeRate exchangeRate) {
