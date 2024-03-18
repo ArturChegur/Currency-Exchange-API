@@ -42,4 +42,12 @@ public class CurrencyService {
     public static CurrencyService getInstance() {
         return INSTANCE;
     }
+
+    public void addCurrency(String code, String name, String sign) {
+        Currency currency = new Currency();
+        currency.setCode(code);
+        currency.setFullName(name);
+        currency.setSign(sign);
+        currenciesDao.addCurrency(currency);
+    }
 }

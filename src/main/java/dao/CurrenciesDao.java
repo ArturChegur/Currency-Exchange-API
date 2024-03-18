@@ -16,6 +16,8 @@ public class CurrenciesDao {
     private static final String FIND_ALL = "SELECT * FROM currencies";
     private static final String FIND_BY_CODE = "SELECT * FROM currencies WHERE code = ?";
     private static final String FIND_BY_ID = "SELECT * FROM currencies WHERE id = ?";
+    private static final String ADD_NEW_CURRENCY = "INSERT INTO currencies (code, full_name, sign) VALUES (?, ?, ?)";
+
 
     private CurrenciesDao() {
     }
@@ -57,6 +59,18 @@ public class CurrenciesDao {
                 return buildCurrency(resultSet);
             }
             return null;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addCurrency(Currency currency) {
+        try (Connection connection = ConnectionManager.get();
+             PreparedStatement addNewCurrency = connection.prepareStatement(ADD_NEW_CURRENCY)) {
+            addNewCurrency.setString(1, currency.getCode());
+            addNewCurrency.setString(2, currency.getFullName());
+            addNewCurrency.setString(3, currency.getSign());
+            addNewCurrency.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

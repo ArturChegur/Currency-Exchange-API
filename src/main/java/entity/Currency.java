@@ -4,16 +4,31 @@ import java.util.Objects;
 
 
 public class Currency {
-    private final Integer id;
-    private final String code;
-    private final String fullName;
-    private final String sign;
+    private Integer id;
+    private String code;
+    private String fullName;
+    private String sign;
 
     public Currency(Integer id, String code, String fullName, String sign) {
         this.id = id;
         this.code = code;
         this.fullName = fullName;
         this.sign = sign;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public void setSign(String sign) {
+        this.sign = sign;
+    }
+
+    public Currency() {
     }
 
     public Integer getId() {

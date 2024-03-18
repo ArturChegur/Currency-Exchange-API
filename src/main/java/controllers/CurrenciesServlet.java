@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.CurrencyService;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 
 @WebServlet("/currencies")
@@ -16,11 +17,9 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        //todo прописать все коды ошибок научится пробрасывать их с самого низа
-        // 200 если все в порядке и 500 если проблемы на стороне сервера
         resp.setContentType("application/json");
         StringBuilder jsonBuilder = new StringBuilder("[");
-        try (var printWriter = resp.getWriter()) {
+        try (PrintWriter printWriter = resp.getWriter()) {
             currencyService.findAll().forEach(currencyDto -> {
                 jsonBuilder.append(currencyDto.toString()).append(",");
             });
@@ -33,6 +32,19 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        //todo post method in localhost:8080/currencies endpoint
+        resp.setContentType("application/json");
+        String code = req.getParameter("code");
+        String name = req.getParameter("name");
+        String sign = req.getParameter("sign");
+
+        if (code == null || name == null || sign == null) {
+            resp.sendError(400, "Invalid currency data");
+        }
+        if (currencyService.findCurrencyByCode(code).isEmpty()) {
+            currencyService.addCurrency(code, name, sign);
+        } else {
+            resp.sendError(409, "This currency already exists");
+        }
+
     }
 }
