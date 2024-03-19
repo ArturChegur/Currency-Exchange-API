@@ -9,6 +9,7 @@ import entity.ExchangeRate;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -32,22 +33,23 @@ public class ExchangeRateService {
     }
 
     private ExchangeRateDto buildExchangeRateDto(ExchangeRate exchangeRate) {
-        Currency baseCurrency = currenciesDao.findCurrencyById(exchangeRate.getBaseCurrencyId());
-        Currency targetCurrency = currenciesDao.findCurrencyById(exchangeRate.getTargetCurrencyId());
-        return new ExchangeRateDto(exchangeRate.getId(),
-                new CurrencyDto(
-                        baseCurrency.getId(),
-                        baseCurrency.getFullName(),
-                        baseCurrency.getCode(),
-                        baseCurrency.getSign()
-                ),
-                new CurrencyDto(
-                        targetCurrency.getId(),
-                        targetCurrency.getFullName(),
-                        targetCurrency.getCode(),
-                        targetCurrency.getSign()
-                ),
-                exchangeRate.getRate());
+//        Optional<Currency> baseCurrency = currenciesDao.findCurrencyById(exchangeRate.getBaseCurrencyId());
+//        Optional<Currency> targetCurrency = currenciesDao.findCurrencyById(exchangeRate.getTargetCurrencyId());
+//        return new ExchangeRateDto(exchangeRate.getId(),
+//                new CurrencyDto(
+//                        baseCurrency.get().getId(),
+//                        baseCurrency.get().getFullName(),
+//                        baseCurrency.get().getCode(),
+//                        baseCurrency.get().getSign()
+//                ),
+//                new CurrencyDto(
+//                        targetCurrency.get().getId(),
+//                        targetCurrency.get().getFullName(),
+//                        targetCurrency.get().getCode(),
+//                        targetCurrency.get().getSign()
+//                ),
+//                exchangeRate.getRate());
+        return null; //todo
     }
 
     public static ExchangeRateService getInstance() {

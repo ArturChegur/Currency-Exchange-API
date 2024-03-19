@@ -4,6 +4,7 @@ import dao.CurrenciesDao;
 import dto.CurrencyDto;
 import entity.Currency;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +18,7 @@ public class CurrencyService {
     private CurrencyService() {
     }
 
-    public List<CurrencyDto> findAll() {
+    public List<CurrencyDto> findAll() throws SQLException {
         return currenciesDao.findAll().stream()
                 .map(currency -> new CurrencyDto(
                         currency.getId(),
@@ -27,27 +28,31 @@ public class CurrencyService {
                 )).collect(toList());
     }
 
-    public Optional<CurrencyDto> findCurrencyByCode(String currencyCode) {
-        Optional<Currency> resultValue = Optional.ofNullable(currenciesDao.findCurrencyByCode(currencyCode));
-        if (resultValue.isPresent()) {
-            Currency currency = resultValue.get();
-            return Optional.of(new CurrencyDto(currency.getId(),
-                    currency.getFullName(),
-                    currency.getCode(),
-                    currency.getSign()));
-        }
-        return Optional.empty();
+    public CurrencyDto findCurrencyByCode(String currencyCode) throws SQLException {
+        Optional<Currency> currency = currenciesDao.findCurrencyByCode(currencyCode);
+        return currency.map(value -> new CurrencyDto(value.getId(),
+                value.getFullName(),
+                value.getCode(),
+                value.getSign())).orElse(null);
     }
 
-    public static CurrencyService getInstance() {
-        return INSTANCE;
+    //todo findAllCodes
+
+    public boolean isCurrencyExists(String code) throws SQLException {
+        return currenciesDao.findAll().stream()
+                .map(Currency::getCode)
+                .anyMatch(c -> c.equals(code));
     }
 
-    public void addCurrency(String code, String name, String sign) {
+    public void addCurrency(String code, String name, String sign) throws SQLException {
         Currency currency = new Currency();
         currency.setCode(code);
         currency.setFullName(name);
         currency.setSign(sign);
         currenciesDao.addCurrency(currency);
+    }
+
+    public static CurrencyService getInstance() {
+        return INSTANCE;
     }
 }

@@ -1,8 +1,5 @@
 package entity;
 
-import java.util.Objects;
-
-
 public class Currency {
     private Integer id;
     private String code;
@@ -45,18 +42,5 @@ public class Currency {
 
     public String getSign() {
         return sign;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Currency currency = (Currency) o;
-        return Objects.equals(id, currency.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }
