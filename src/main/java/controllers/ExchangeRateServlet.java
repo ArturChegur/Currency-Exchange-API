@@ -27,7 +27,7 @@ public class ExchangeRateServlet extends HttpServlet {
             String baseCurrency = currencies.substring(0, 3);
             String targetCurrency = currencies.substring(3);
             try (var printWriter = resp.getWriter()) {
-                Optional<ExchangeRateDto> exchangeRateDto = Optional.ofNullable(exchangeRateService.findByCodePair(baseCurrency, targetCurrency));
+                Optional<ExchangeRateDto> exchangeRateDto = Optional.ofNullable(exchangeRateService.findExchangeRateByCodePair(null));
                 if (exchangeRateDto.isPresent()) {
                     printWriter.write(exchangeRateDto.get().toString());
                 } else {

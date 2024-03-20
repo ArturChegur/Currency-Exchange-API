@@ -3,68 +3,70 @@ package dao;
 import entity.ExchangeRate;
 import util.ConnectionManager;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
-public class ExchangeRatesDao {
+public class ExchangeRatesDao implements Dao<ExchangeRate, String> {
     private static final ExchangeRatesDao INSTANCE = new ExchangeRatesDao();
     private static final String FIND_ALL = "SELECT * FROM exchange_rates";
-    private static final String[] FIND_BY_CODE_PAIR = {
-            "SELECT id FROM currencies WHERE code = ?",
-            "SELECT id FROM currencies WHERE code = ?",
-            "SELECT * FROM exchange_rates WHERE base_currency_id = ? AND target_currency_id = ?"};
+    public static final String ADD_NEW_EXCHANGE_RATE = "INSERT INTO exchange_rates (base_currency_id, target_currency_id, rate) VALUES (?, ?, ?);";
+    private static final String FIND_BY_CODE_PAIR = """
+            SELECT er.id, er.base_currency_id, er.target_currency_id, er.rate
+            FROM exchange_rates er
+            JOIN currencies base_curr ON er.base_currency_id = base_curr.id
+            JOIN currencies target_curr ON er.target_currency_id = target_curr.id
+            WHERE base_curr.code = ? AND target_curr.code = ?;
+            """;
 
     private ExchangeRatesDao() {
     }
 
-    public List<ExchangeRate> findAll() {
-        try (Connection connection = ConnectionManager.get();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL)) {
+    @Override
+    public List<ExchangeRate> findAll() throws SQLException {
+        try (Connection connection = ConnectionManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL);
             ResultSet resultSet = preparedStatement.executeQuery();
             List<ExchangeRate> exchangeRates = new ArrayList<>();
             while (resultSet.next()) {
                 exchangeRates.add(buildExchangeRate(resultSet));
             }
             return exchangeRates;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    public ExchangeRate findByCodePair(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
-        try (Connection connection = ConnectionManager.get();
-             PreparedStatement prepareBaseCurrencyId = connection.prepareStatement(FIND_BY_CODE_PAIR[0]);
-             PreparedStatement prepareTargetCurrencyId = connection.prepareStatement(FIND_BY_CODE_PAIR[1])) {
-
-            prepareBaseCurrencyId.setString(1, baseCurrencyCode);
-            prepareTargetCurrencyId.setString(1, targetCurrencyCode);
-            try (ResultSet resultBaseCurrency = prepareBaseCurrencyId.executeQuery();
-                 ResultSet resultTargetCurrency = prepareTargetCurrencyId.executeQuery();
-            ) {
-                if (resultBaseCurrency.next() && resultTargetCurrency.next()) {
-                    int baseCurrencyId = resultBaseCurrency.getInt("id");
-                    int targetCurrencyId = resultTargetCurrency.getInt("id");
-                    try (PreparedStatement preparedExchangeRate = connection.prepareStatement(FIND_BY_CODE_PAIR[2])) {
-                        preparedExchangeRate.setInt(1, baseCurrencyId);
-                        preparedExchangeRate.setInt(2, targetCurrencyId);
-                        ResultSet resultSet = preparedExchangeRate.executeQuery();
-                        if (resultSet.next()) {
-                            return buildExchangeRate(resultSet);
-                        }
-                    }
-                }
+    @Override
+    public Optional<ExchangeRate> findByCode(String codePair) throws SQLException {
+        String baseCurrency = codePair.substring(0, 3);
+        String targetCurrency = codePair.substring(3);
+        try (Connection connection = ConnectionManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE_PAIR);
+            preparedStatement.setString(1, baseCurrency);
+            preparedStatement.setString(1, targetCurrency);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return Optional.of(buildExchangeRate(resultSet));
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            return Optional.empty();
         }
-        return null;
     }
 
+    @Override
+    public void add(ExchangeRate exchangeRate) throws SQLException {
+        try (Connection connection = ConnectionManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(ADD_NEW_EXCHANGE_RATE);
+            preparedStatement.setInt(1, exchangeRate.getBaseCurrencyId());
+            preparedStatement.setInt(2, exchangeRate.getTargetCurrencyId());
+            preparedStatement.setBigDecimal(3, exchangeRate.getRate());
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    public void update(ExchangeRate exchangeRate) {
+        //todo
+    }
 
     private ExchangeRate buildExchangeRate(ResultSet resultSet) throws SQLException {
         return new ExchangeRate(resultSet.getInt(("id")),

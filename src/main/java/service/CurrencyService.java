@@ -29,7 +29,7 @@ public class CurrencyService {
     }
 
     public CurrencyDto findCurrencyByCode(String currencyCode) throws SQLException {
-        Optional<Currency> currency = currenciesDao.findCurrencyByCode(currencyCode);
+        Optional<Currency> currency = currenciesDao.findByCode(currencyCode);
         return currency.map(value -> new CurrencyDto(value.getId(),
                 value.getFullName(),
                 value.getCode(),
@@ -49,7 +49,7 @@ public class CurrencyService {
         currency.setCode(code);
         currency.setFullName(name);
         currency.setSign(sign);
-        currenciesDao.addCurrency(currency);
+        currenciesDao.add(currency);
     }
 
     public static CurrencyService getInstance() {

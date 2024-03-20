@@ -7,6 +7,7 @@ import dto.ExchangeRateDto;
 import entity.Currency;
 import entity.ExchangeRate;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -22,34 +23,54 @@ public class ExchangeRateService {
     private ExchangeRateService() {
     }
 
-    public List<ExchangeRateDto> findAll() {
+    public List<ExchangeRateDto> findAll() throws SQLException {
         return exchangeRateDao.findAll().stream()
                 .map(this::buildExchangeRateDto)
                 .collect(toList());
     }
 
-    public ExchangeRateDto findByCodePair(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
-        return buildExchangeRateDto(exchangeRateDao.findByCodePair(baseCurrencyCode, targetCurrencyCode));
+    public ExchangeRateDto findExchangeRateByCodePair(String codePair) throws SQLException {
+        Optional<ExchangeRate> exchangeRate = exchangeRateDao.findByCode(codePair);
+        return exchangeRate.map(this::buildExchangeRateDto).orElse(null);
+    }
+
+    public void addNewExchangeRate(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException {
+        ExchangeRate exchangeRate = new ExchangeRate();
+        exchangeRate.setBaseCurrencyId(currenciesDao.findByCode(baseCurrencyCode).get().getId());
+        exchangeRate.setTargetCurrencyId(currenciesDao.findByCode(targetCurrencyCode).get().getId());
+        exchangeRate.setRate(rate);
+        exchangeRateDao.add(exchangeRate);
+    }
+
+    public boolean isExchangeRateExists(String codePair) throws SQLException {
+        return findExchangeRateByCodePair(codePair) != null;
     }
 
     private ExchangeRateDto buildExchangeRateDto(ExchangeRate exchangeRate) {
-//        Optional<Currency> baseCurrency = currenciesDao.findCurrencyById(exchangeRate.getBaseCurrencyId());
-//        Optional<Currency> targetCurrency = currenciesDao.findCurrencyById(exchangeRate.getTargetCurrencyId());
-//        return new ExchangeRateDto(exchangeRate.getId(),
-//                new CurrencyDto(
-//                        baseCurrency.get().getId(),
-//                        baseCurrency.get().getFullName(),
-//                        baseCurrency.get().getCode(),
-//                        baseCurrency.get().getSign()
-//                ),
-//                new CurrencyDto(
-//                        targetCurrency.get().getId(),
-//                        targetCurrency.get().getFullName(),
-//                        targetCurrency.get().getCode(),
-//                        targetCurrency.get().getSign()
-//                ),
-//                exchangeRate.getRate());
-        return null; //todo
+        Optional<Currency> baseCurrency;
+        try {
+            baseCurrency = currenciesDao.findCurrencyById(exchangeRate.getBaseCurrencyId());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        Optional<Currency> targetCurrency;
+        try {
+            targetCurrency = currenciesDao.findCurrencyById(exchangeRate.getTargetCurrencyId());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return new ExchangeRateDto(exchangeRate.getId(),
+                baseCurrency.map(value -> new CurrencyDto(
+                        value.getId(),
+                        value.getFullName(),
+                        value.getCode(),
+                        value.getSign())).orElse(null),
+                targetCurrency.map(value -> new CurrencyDto(
+                        value.getId(),
+                        value.getFullName(),
+                        value.getCode(),
+                        value.getSign())).orElse(null),
+                exchangeRate.getRate());
     }
 
     public static ExchangeRateService getInstance() {

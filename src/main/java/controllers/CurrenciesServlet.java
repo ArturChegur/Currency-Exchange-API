@@ -39,6 +39,7 @@ public class CurrenciesServlet extends HttpServlet {
         try {
             if (!currencyService.isCurrencyExists(code)) {
                 currencyService.addCurrency(code, name, sign);
+                resp.setStatus(201);
             } else {
                 resp.sendError(409, "This currency already exists");
             }
