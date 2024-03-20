@@ -18,8 +18,6 @@ public class CurrenciesServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
         try (PrintWriter printWriter = resp.getWriter()) {
             printWriter.write(buildJson());
         } catch (SQLException e) {

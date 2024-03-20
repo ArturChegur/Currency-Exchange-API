@@ -20,7 +20,6 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("application/json");
         String pathInfo = req.getPathInfo();
         if (pathInfo != null && pathInfo.length() == 7) {
             String currencies = pathInfo.substring(1);
