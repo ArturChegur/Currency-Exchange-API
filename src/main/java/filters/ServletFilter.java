@@ -5,7 +5,6 @@ import jakarta.servlet.annotation.WebFilter;
 
 import java.io.IOException;
 
-
 @WebFilter("/*")
 public class ServletFilter implements Filter {
     @Override

@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
-
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
@@ -45,6 +44,24 @@ public class ExchangeRateServlet extends HttpServlet {
     }
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
+        if (req.getPathInfo() == null || req.getPathInfo().equals("/") || req.getPathInfo().length() < 7) {
+            resp.sendError(400, "URL endpoint is empty");
+            return;
+        }
+        String rate = req.getParameter("rate");
+        if (rate == null) {
+            resp.sendError(400, "Required currency data field is missing");
+        }
+        try {
+            rate = req.getParameter("rate");
+            String codePair = req.getPathInfo().substring(1, 7);
+            if (exchangeRateService.exists(codePair)) {
+                exchangeRateService.update(codePair, rate);
+            } else {
+                resp.sendError(404, "Exchange rate not found");
+            }
+        } catch (SQLException e) {
+            resp.sendError(500, "Problems with the database");
+        }
     }
 }

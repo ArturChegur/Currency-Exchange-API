@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
-
 @WebServlet("/currency/*")
 public class CurrencyServlet extends HttpServlet {
     private final CurrencyService currencyService = CurrencyService.getInstance();
@@ -19,6 +18,7 @@ public class CurrencyServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         if (req.getPathInfo() == null || req.getPathInfo().equals("/")) {
             resp.sendError(400, "URL endpoint is empty");
+            return;
         }
         try (PrintWriter printWriter = resp.getWriter()) {
             String currencyCode = req.getPathInfo().substring(1);

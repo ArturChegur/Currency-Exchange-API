@@ -14,7 +14,6 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
-
 public class ExchangeRateService implements Service<ExchangeRateDto> {
     private static final ExchangeRateService INSTANCE = new ExchangeRateService();
     private static final ExchangeRatesDao exchangeRateDao = ExchangeRatesDao.getInstance();
@@ -48,6 +47,11 @@ public class ExchangeRateService implements Service<ExchangeRateDto> {
     @Override
     public boolean exists(String codePair) throws SQLException {
         return findByCode(codePair) != null;
+    }
+
+    public void update(String codePair, String rate) throws SQLException {
+        ExchangeRateDto exchangeRateDto = findByCode(codePair);
+        exchangeRateDao.update(exchangeRateDto.getId(), rate);
     }
 
     private ExchangeRateDto buildExchangeRateDto(ExchangeRate exchangeRate) {

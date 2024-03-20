@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
-
 public class CurrencyService implements Service<CurrencyDto> {
     private static final CurrencyService INSTANCE = new CurrencyService();
     private final CurrenciesDao currenciesDao = CurrenciesDao.getInstance();
@@ -37,8 +36,6 @@ public class CurrencyService implements Service<CurrencyDto> {
                 value.getCode(),
                 value.getSign())).orElse(null);
     }
-
-    //todo findAllCodes
 
     @Override
     public boolean exists(String code) throws SQLException {

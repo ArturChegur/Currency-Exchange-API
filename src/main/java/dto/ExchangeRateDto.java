@@ -3,7 +3,6 @@ package dto;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-
 public class ExchangeRateDto {
     private final Integer id;
     private final CurrencyDto baseCurrency;

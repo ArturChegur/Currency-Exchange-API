@@ -2,7 +2,6 @@ package dto;
 
 import java.util.Objects;
 
-
 public class CurrencyDto {
     private final Integer id;
     private final String name;

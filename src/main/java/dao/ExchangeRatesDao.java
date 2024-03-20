@@ -3,16 +3,17 @@ package dao;
 import entity.ExchangeRate;
 import util.ConnectionManager;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
 public class ExchangeRatesDao implements Dao<ExchangeRate> {
     private static final ExchangeRatesDao INSTANCE = new ExchangeRatesDao();
     private static final String FIND_ALL = "SELECT * FROM exchange_rates";
     public static final String ADD_NEW_EXCHANGE_RATE = "INSERT INTO exchange_rates (base_currency_id, target_currency_id, rate) VALUES (?, ?, ?);";
+    private static final String UPDATE_EXCHANGE_RATE = "UPDATE exchange_rates SET rate = ? WHERE id = ?";
     private static final String FIND_BY_CODE_PAIR = """
             SELECT er.id, er.base_currency_id, er.target_currency_id, er.rate
             FROM exchange_rates er
@@ -64,8 +65,13 @@ public class ExchangeRatesDao implements Dao<ExchangeRate> {
         }
     }
 
-    public void update(ExchangeRate exchangeRate) {
-        //todo
+    public void update(Integer id, String rate) throws SQLException {
+        try (Connection connection = ConnectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_EXCHANGE_RATE)) {
+            preparedStatement.setBigDecimal(1, new BigDecimal(rate));
+            preparedStatement.setInt(2, id);
+            preparedStatement.executeUpdate();
+        }
     }
 
     private ExchangeRate buildExchangeRate(ResultSet resultSet) throws SQLException {

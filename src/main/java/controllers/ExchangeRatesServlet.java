@@ -9,9 +9,7 @@ import service.ExchangeRateService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.math.BigDecimal;
 import java.sql.SQLException;
-
 
 @WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
@@ -34,11 +32,13 @@ public class ExchangeRatesServlet extends HttpServlet {
         String rate = req.getParameter("rate");
         if (baseCurrencyCode == null || targetCurrencyCode == null || rate == null) {
             resp.sendError(400, "Invalid parameters for exchange rate");
+            return;
         }
         try {
             if (currencyService.exists(baseCurrencyCode) && currencyService.exists(targetCurrencyCode)) {
                 if (!exchangeRateService.exists(baseCurrencyCode + targetCurrencyCode)) {
                     exchangeRateService.add(baseCurrencyCode, targetCurrencyCode, rate);
+                    resp.setStatus(201);
                 } else {
                     resp.sendError(409, "This exchange rate already exists");
                 }

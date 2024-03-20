@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
-
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
     private final CurrencyService currencyService = CurrencyService.getInstance();
@@ -32,6 +31,7 @@ public class CurrenciesServlet extends HttpServlet {
 
         if (code == null || name == null || sign == null) {
             resp.sendError(400, "Required currency data field is missing");
+            return;
         }
         try {
             if (!currencyService.exists(code)) {
