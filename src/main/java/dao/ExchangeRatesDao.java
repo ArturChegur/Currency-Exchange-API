@@ -9,15 +9,15 @@ import java.util.List;
 import java.util.Optional;
 
 
-public class ExchangeRatesDao implements Dao<ExchangeRate, String> {
+public class ExchangeRatesDao implements Dao<ExchangeRate> {
     private static final ExchangeRatesDao INSTANCE = new ExchangeRatesDao();
     private static final String FIND_ALL = "SELECT * FROM exchange_rates";
     public static final String ADD_NEW_EXCHANGE_RATE = "INSERT INTO exchange_rates (base_currency_id, target_currency_id, rate) VALUES (?, ?, ?);";
     private static final String FIND_BY_CODE_PAIR = """
             SELECT er.id, er.base_currency_id, er.target_currency_id, er.rate
             FROM exchange_rates er
-            JOIN currencies base_curr ON er.base_currency_id = base_curr.id
-            JOIN currencies target_curr ON er.target_currency_id = target_curr.id
+            INNER JOIN currencies base_curr ON er.base_currency_id = base_curr.id
+            INNER JOIN currencies target_curr ON er.target_currency_id = target_curr.id
             WHERE base_curr.code = ? AND target_curr.code = ?;
             """;
 
@@ -44,7 +44,7 @@ public class ExchangeRatesDao implements Dao<ExchangeRate, String> {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE_PAIR);
             preparedStatement.setString(1, baseCurrency);
-            preparedStatement.setString(1, targetCurrency);
+            preparedStatement.setString(2, targetCurrency);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 return Optional.of(buildExchangeRate(resultSet));

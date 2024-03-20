@@ -11,13 +11,14 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toList;
 
 
-public class CurrencyService {
+public class CurrencyService implements Service<CurrencyDto> {
     private static final CurrencyService INSTANCE = new CurrencyService();
     private final CurrenciesDao currenciesDao = CurrenciesDao.getInstance();
 
     private CurrencyService() {
     }
 
+    @Override
     public List<CurrencyDto> findAll() throws SQLException {
         return currenciesDao.findAll().stream()
                 .map(currency -> new CurrencyDto(
@@ -28,7 +29,8 @@ public class CurrencyService {
                 )).collect(toList());
     }
 
-    public CurrencyDto findCurrencyByCode(String currencyCode) throws SQLException {
+    @Override
+    public CurrencyDto findByCode(String currencyCode) throws SQLException {
         Optional<Currency> currency = currenciesDao.findByCode(currencyCode);
         return currency.map(value -> new CurrencyDto(value.getId(),
                 value.getFullName(),
@@ -38,13 +40,15 @@ public class CurrencyService {
 
     //todo findAllCodes
 
-    public boolean isCurrencyExists(String code) throws SQLException {
+    @Override
+    public boolean exists(String code) throws SQLException {
         return currenciesDao.findAll().stream()
                 .map(Currency::getCode)
                 .anyMatch(c -> c.equals(code));
     }
 
-    public void addCurrency(String code, String name, String sign) throws SQLException {
+    @Override
+    public void add(String code, String name, String sign) throws SQLException {
         Currency currency = new Currency();
         currency.setCode(code);
         currency.setFullName(name);

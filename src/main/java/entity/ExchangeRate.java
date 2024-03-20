@@ -1,8 +1,6 @@
 package entity;
 
 import java.math.BigDecimal;
-import java.util.Objects;
-
 
 public class ExchangeRate {
     private Integer id;

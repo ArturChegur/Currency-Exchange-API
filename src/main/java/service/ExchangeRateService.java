@@ -15,7 +15,7 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toList;
 
 
-public class ExchangeRateService {
+public class ExchangeRateService implements Service<ExchangeRateDto> {
     private static final ExchangeRateService INSTANCE = new ExchangeRateService();
     private static final ExchangeRatesDao exchangeRateDao = ExchangeRatesDao.getInstance();
     private static final CurrenciesDao currenciesDao = CurrenciesDao.getInstance();
@@ -23,27 +23,31 @@ public class ExchangeRateService {
     private ExchangeRateService() {
     }
 
+    @Override
     public List<ExchangeRateDto> findAll() throws SQLException {
         return exchangeRateDao.findAll().stream()
                 .map(this::buildExchangeRateDto)
                 .collect(toList());
     }
 
-    public ExchangeRateDto findExchangeRateByCodePair(String codePair) throws SQLException {
+    @Override
+    public ExchangeRateDto findByCode(String codePair) throws SQLException {
         Optional<ExchangeRate> exchangeRate = exchangeRateDao.findByCode(codePair);
         return exchangeRate.map(this::buildExchangeRateDto).orElse(null);
     }
 
-    public void addNewExchangeRate(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException {
+    @Override
+    public void add(String baseCurrencyCode, String targetCurrencyCode, String rate) throws SQLException {
         ExchangeRate exchangeRate = new ExchangeRate();
         exchangeRate.setBaseCurrencyId(currenciesDao.findByCode(baseCurrencyCode).get().getId());
         exchangeRate.setTargetCurrencyId(currenciesDao.findByCode(targetCurrencyCode).get().getId());
-        exchangeRate.setRate(rate);
+        exchangeRate.setRate(new BigDecimal(rate));
         exchangeRateDao.add(exchangeRate);
     }
 
-    public boolean isExchangeRateExists(String codePair) throws SQLException {
-        return findExchangeRateByCodePair(codePair) != null;
+    @Override
+    public boolean exists(String codePair) throws SQLException {
+        return findByCode(codePair) != null;
     }
 
     private ExchangeRateDto buildExchangeRateDto(ExchangeRate exchangeRate) {

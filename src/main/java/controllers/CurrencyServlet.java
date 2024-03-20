@@ -8,7 +8,6 @@ import service.CurrencyService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 
 
@@ -23,8 +22,8 @@ public class CurrencyServlet extends HttpServlet {
         }
         try (PrintWriter printWriter = resp.getWriter()) {
             String currencyCode = req.getPathInfo().substring(1);
-            if (currencyService.isCurrencyExists(currencyCode)) {
-                printWriter.write(currencyService.findCurrencyByCode(currencyCode).toString());
+            if (currencyService.exists(currencyCode)) {
+                printWriter.write(currencyService.findByCode(currencyCode).toString());
             } else {
                 resp.sendError(404, "Currency not found");
             }

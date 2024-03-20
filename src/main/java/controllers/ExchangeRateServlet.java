@@ -1,7 +1,6 @@
 package controllers;
 
-import dto.CurrencyDto;
-import dto.ExchangeRateDto;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,9 +8,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.ExchangeRateService;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Optional;
 
 
 @WebServlet("/exchangeRate/*")
@@ -19,22 +17,34 @@ public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String pathInfo = req.getPathInfo();
-        if (pathInfo != null && pathInfo.length() == 7) {
-            String currencies = pathInfo.substring(1);
-            String baseCurrency = currencies.substring(0, 3);
-            String targetCurrency = currencies.substring(3);
-            try (var printWriter = resp.getWriter()) {
-                Optional<ExchangeRateDto> exchangeRateDto = Optional.ofNullable(exchangeRateService.findExchangeRateByCodePair(null));
-                if (exchangeRateDto.isPresent()) {
-                    printWriter.write(exchangeRateDto.get().toString());
-                } else {
-                    resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid currency code");
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (req.getMethod().equalsIgnoreCase("PATCH")) {
+            doPatch(req, resp);
+        } else {
+            super.service(req, resp);
         }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        if (req.getPathInfo() == null || req.getPathInfo().equals("/")) {
+            resp.sendError(400, "URL endpoint is empty");
+            return;
+        }
+        try (PrintWriter printWriter = resp.getWriter()) {
+            String exchangeRateCodePair = req.getPathInfo().substring(1);
+            if (exchangeRateService.exists(exchangeRateCodePair)) {
+                printWriter.write(exchangeRateService.findByCode(exchangeRateCodePair).toString());
+            } else {
+                resp.sendError(404, "Exchange rate not found");
+            }
+
+        } catch (SQLException e) {
+            resp.sendError(500, "Problems with the database");
+        }
+    }
+
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
     }
 }

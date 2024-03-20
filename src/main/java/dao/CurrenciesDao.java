@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 
-public class CurrenciesDao implements Dao<Currency, String> {
+public class CurrenciesDao implements Dao<Currency> {
     private static final CurrenciesDao INSTANCE = new CurrenciesDao();
     private static final String FIND_ALL = "SELECT * FROM currencies";
     private static final String FIND_BY_CODE = "SELECT * FROM currencies WHERE code = ?";

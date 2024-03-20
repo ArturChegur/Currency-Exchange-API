@@ -8,7 +8,6 @@ import service.CurrencyService;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 
 
@@ -35,8 +34,8 @@ public class CurrenciesServlet extends HttpServlet {
             resp.sendError(400, "Required currency data field is missing");
         }
         try {
-            if (!currencyService.isCurrencyExists(code)) {
-                currencyService.addCurrency(code, name, sign);
+            if (!currencyService.exists(code)) {
+                currencyService.add(code, name, sign);
                 resp.setStatus(201);
             } else {
                 resp.sendError(409, "This currency already exists");

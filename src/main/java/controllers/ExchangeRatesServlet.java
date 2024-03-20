@@ -10,7 +10,6 @@ import service.ExchangeRateService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 
 
@@ -37,9 +36,9 @@ public class ExchangeRatesServlet extends HttpServlet {
             resp.sendError(400, "Invalid parameters for exchange rate");
         }
         try {
-            if (currencyService.isCurrencyExists(baseCurrencyCode) && currencyService.isCurrencyExists(targetCurrencyCode)) {
-                if (!exchangeRateService.isExchangeRateExists(baseCurrencyCode + targetCurrencyCode)) {
-                    exchangeRateService.addNewExchangeRate(baseCurrencyCode, targetCurrencyCode, new BigDecimal(rate));
+            if (currencyService.exists(baseCurrencyCode) && currencyService.exists(targetCurrencyCode)) {
+                if (!exchangeRateService.exists(baseCurrencyCode + targetCurrencyCode)) {
+                    exchangeRateService.add(baseCurrencyCode, targetCurrencyCode, rate);
                 } else {
                     resp.sendError(409, "This exchange rate already exists");
                 }
