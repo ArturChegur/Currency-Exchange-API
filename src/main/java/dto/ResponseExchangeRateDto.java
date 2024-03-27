@@ -3,13 +3,13 @@ package dto;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-public class ExchangeRateDto {
+public class ResponseExchangeRateDto {
     private final Integer id;
-    private final CurrencyDto baseCurrency;
-    private final CurrencyDto targetCurrency;
+    private final ResponseCurrencyDto baseCurrency;
+    private final ResponseCurrencyDto targetCurrency;
     private final BigDecimal rate;
 
-    public ExchangeRateDto(Integer id, CurrencyDto baseCurrency, CurrencyDto targetCurrency, BigDecimal rate) {
+    public ResponseExchangeRateDto(Integer id, ResponseCurrencyDto baseCurrency, ResponseCurrencyDto targetCurrency, BigDecimal rate) {
         this.id = id;
         this.baseCurrency = baseCurrency;
         this.targetCurrency = targetCurrency;
@@ -20,11 +20,11 @@ public class ExchangeRateDto {
         return id;
     }
 
-    public CurrencyDto getBaseCurrency() {
+    public ResponseCurrencyDto getBaseCurrency() {
         return baseCurrency;
     }
 
-    public CurrencyDto getTargetCurrency() {
+    public ResponseCurrencyDto getTargetCurrency() {
         return targetCurrency;
     }
 
@@ -36,7 +36,7 @@ public class ExchangeRateDto {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ExchangeRateDto that = (ExchangeRateDto) o;
+        ResponseExchangeRateDto that = (ResponseExchangeRateDto) o;
         return Objects.equals(id, that.id);
     }
 

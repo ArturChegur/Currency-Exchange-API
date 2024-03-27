@@ -1,5 +1,7 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dto.RequestExchangeRateDto;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -8,12 +10,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.ExchangeRateService;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
+import java.math.BigDecimal;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
     private final ExchangeRateService exchangeRateService = ExchangeRateService.getInstance();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -26,42 +28,23 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (req.getPathInfo() == null || req.getPathInfo().equals("/")) {
-            resp.sendError(400, "URL endpoint is empty");
-            return;
-        }
-        try (PrintWriter printWriter = resp.getWriter()) {
-            String exchangeRateCodePair = req.getPathInfo().substring(1);
-            if (exchangeRateService.exists(exchangeRateCodePair)) {
-                printWriter.write(exchangeRateService.findByCode(exchangeRateCodePair).toString());
-            } else {
-                resp.sendError(404, "Exchange rate not found");
-            }
-
-        } catch (SQLException e) {
-            resp.sendError(500, "Problems with the database");
-        }
+        String path = req.getPathInfo().substring(1);
+        RequestExchangeRateDto request = new RequestExchangeRateDto();
+        System.out.println(path);
+        request.setBaseCurrency(path.substring(0, 3));
+        System.out.println(request.getBaseCurrency());
+        request.setTargetCurrency(path.substring(3, 6));
+        System.out.println(request.getTargetCurrency());
+        resp.getWriter().write(mapper.writeValueAsString(exchangeRateService.findByCode(request)));
     }
 
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (req.getPathInfo() == null || req.getPathInfo().equals("/") || req.getPathInfo().length() < 7) {
-            resp.sendError(400, "URL endpoint is empty");
-            return;
-        }
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) {
         String rate = req.getParameter("rate");
-        if (rate == null) {
-            resp.sendError(400, "Required currency data field is missing");
-        }
-        try {
-            rate = req.getParameter("rate");
-            String codePair = req.getPathInfo().substring(1, 7);
-            if (exchangeRateService.exists(codePair)) {
-                exchangeRateService.update(codePair, rate);
-            } else {
-                resp.sendError(404, "Exchange rate not found");
-            }
-        } catch (SQLException e) {
-            resp.sendError(500, "Problems with the database");
-        }
+        String path = req.getPathInfo().substring(1);
+        RequestExchangeRateDto request = new RequestExchangeRateDto();
+        request.setBaseCurrency(path.substring(1, 3));
+        request.setBaseCurrency(path.substring(3, 6));
+        request.setRate(new BigDecimal(rate));
+        exchangeRateService.update(request);
     }
 }

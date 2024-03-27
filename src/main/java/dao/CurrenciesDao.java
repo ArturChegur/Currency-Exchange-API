@@ -1,6 +1,9 @@
 package dao;
 
+import dto.RequestCurrencyDto;
 import entity.Currency;
+import exceptions.DataExistsException;
+import exceptions.DatabaseException;
 import util.ConnectionManager;
 
 import java.sql.Connection;
@@ -11,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CurrenciesDao implements Dao<Currency> {
+public class CurrenciesDao implements Dao<Currency, RequestCurrencyDto> {
     private static final CurrenciesDao INSTANCE = new CurrenciesDao();
     private static final String FIND_ALL = "SELECT * FROM currencies";
     private static final String FIND_BY_CODE = "SELECT * FROM currencies WHERE code = ?";
@@ -22,7 +25,7 @@ public class CurrenciesDao implements Dao<Currency> {
     }
 
     @Override
-    public List<Currency> findAll() throws SQLException {
+    public List<Currency> findAll() { // done
         List<Currency> currencies = new ArrayList<>();
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL);
@@ -31,34 +34,48 @@ public class CurrenciesDao implements Dao<Currency> {
                 currencies.add(buildCurrency(resultSet));
             }
             return currencies;
+        } catch (SQLException e) {
+            throw new DatabaseException("Database is unavailable");
         }
     }
 
     @Override
-    public Optional<Currency> findByCode(String currencyCode) throws SQLException {
+    public Optional<Currency> findByCode(RequestCurrencyDto request) {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE);
-            preparedStatement.setObject(1, currencyCode);
+            preparedStatement.setObject(1, request.getCode());
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 return Optional.of(buildCurrency(resultSet));
             }
             return Optional.empty();
+        } catch (SQLException e) {
+            throw new DatabaseException("Database is unavailable");
         }
     }
 
     @Override
-    public void add(Currency currency) throws SQLException {
-        try (Connection connection = ConnectionManager.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(ADD_NEW_CURRENCY);
-            preparedStatement.setString(1, currency.getCode());
-            preparedStatement.setString(2, currency.getFullName());
-            preparedStatement.setString(3, currency.getSign());
-            preparedStatement.executeUpdate();
+    public void add(RequestCurrencyDto request) { //done
+        if (exists(request)) {
+            throw new DataExistsException("Currency already exists");
+        } else {
+            try (Connection connection = ConnectionManager.getConnection()) {
+                PreparedStatement preparedStatement = connection.prepareStatement(ADD_NEW_CURRENCY);
+                preparedStatement.setString(1, request.getCode());
+                preparedStatement.setString(2, request.getName());
+                preparedStatement.setString(3, request.getSign());
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                throw new DatabaseException("Database is unavailable");
+            }
         }
     }
 
-    public Optional<Currency> findCurrencyById(Integer id) throws SQLException {
+    private boolean exists(RequestCurrencyDto request) { // done
+        return findByCode(request).isPresent();
+    }
+
+    public Optional<Currency> findCurrencyById(Integer id) { //done
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID);
             preparedStatement.setObject(1, id);
@@ -67,10 +84,12 @@ public class CurrenciesDao implements Dao<Currency> {
                 return Optional.of(buildCurrency(resultSet));
             }
             return Optional.empty();
+        } catch (SQLException e) {
+            throw new DatabaseException("Database is unavailable");
         }
     }
 
-    private Currency buildCurrency(ResultSet resultSet) throws SQLException {
+    private Currency buildCurrency(ResultSet resultSet) throws SQLException { //done
         return new Currency(resultSet.getInt("id"),
                 resultSet.getString("code"),
                 resultSet.getString("full_name"),

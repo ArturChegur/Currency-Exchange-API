@@ -1,5 +1,8 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dto.RequestCurrencyDto;
+import dto.ResponseCurrencyDto;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,52 +10,26 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.CurrencyService;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
+import java.util.List;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
     private final CurrencyService currencyService = CurrencyService.getInstance();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        try (PrintWriter printWriter = resp.getWriter()) {
-            printWriter.write(buildJson());
-        } catch (SQLException e) {
-            resp.sendError(500, "Problems with the database");
-        }
+        List<ResponseCurrencyDto> result = currencyService.findAll();
+        String jsonResponse = mapper.writeValueAsString(result);
+        resp.getWriter().write(jsonResponse);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String code = req.getParameter("code");
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         String name = req.getParameter("name");
+        String code = req.getParameter("code");
         String sign = req.getParameter("sign");
-
-        if (code == null || name == null || sign == null) {
-            resp.sendError(400, "Required currency data field is missing");
-            return;
-        }
-        try {
-            if (!currencyService.exists(code)) {
-                currencyService.add(code, name, sign);
-                resp.setStatus(201);
-            } else {
-                resp.sendError(409, "This currency already exists");
-            }
-        } catch (SQLException e) {
-            resp.sendError(500, "Problems with database");
-        }
-    }
-
-    private String buildJson() throws SQLException {
-        StringBuilder jsonBuilder = new StringBuilder("[");
-        currencyService.findAll().forEach(currencyDto -> {
-            jsonBuilder.append(currencyDto.toString()).append(",");
-        });
-        if (jsonBuilder.length() > 1) {
-            jsonBuilder.deleteCharAt(jsonBuilder.length() - 1);
-        }
-        return jsonBuilder.append("]").toString();
+        currencyService.add(new RequestCurrencyDto(name, code, sign));
+        resp.setStatus(201);
     }
 }

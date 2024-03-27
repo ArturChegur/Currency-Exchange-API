@@ -3,12 +3,10 @@ package service;
 import java.sql.SQLException;
 import java.util.List;
 
-public interface Service<T> {
-    List<T> findAll() throws SQLException;
+public interface Service<T, E> {
+    List<T> findAll();
 
-    T findByCode(String code) throws SQLException;
+    T findByCode(E entity);
 
-    void add(String value1, String value2, String value3) throws SQLException;
-
-    boolean exists(String code) throws SQLException;
+    void add(E entity);
 }

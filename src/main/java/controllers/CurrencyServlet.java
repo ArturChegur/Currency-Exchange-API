@@ -1,5 +1,8 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dto.RequestCurrencyDto;
+import dto.ResponseCurrencyDto;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -7,28 +10,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import service.CurrencyService;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.sql.SQLException;
 
 @WebServlet("/currency/*")
 public class CurrencyServlet extends HttpServlet {
     private final CurrencyService currencyService = CurrencyService.getInstance();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        if (req.getPathInfo() == null || req.getPathInfo().equals("/")) {
-            resp.sendError(400, "URL endpoint is empty");
-            return;
-        }
-        try (PrintWriter printWriter = resp.getWriter()) {
-            String currencyCode = req.getPathInfo().substring(1);
-            if (currencyService.exists(currencyCode)) {
-                printWriter.write(currencyService.findByCode(currencyCode).toString());
-            } else {
-                resp.sendError(404, "Currency not found");
-            }
-        } catch (SQLException e) {
-            resp.sendError(500, "Problems with the database");
-        }
+        String currencyCode = req.getPathInfo().substring(1); //todo validation
+        RequestCurrencyDto request = new RequestCurrencyDto();
+        request.setCode(currencyCode);
+        ResponseCurrencyDto response = currencyService.findByCode(request);
+        mapper.writeValueAsString(response);
+        resp.getWriter().write(mapper.writeValueAsString(response));
     }
 }

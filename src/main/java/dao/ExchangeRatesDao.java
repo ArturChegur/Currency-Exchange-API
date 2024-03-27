@@ -1,19 +1,27 @@
 package dao;
 
+import dto.RequestExchangeRateDto;
 import entity.ExchangeRate;
+import exceptions.DatabaseException;
 import util.ConnectionManager;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ExchangeRatesDao implements Dao<ExchangeRate> {
+public class ExchangeRatesDao implements Dao<ExchangeRate, RequestExchangeRateDto> {
     private static final ExchangeRatesDao INSTANCE = new ExchangeRatesDao();
     private static final String FIND_ALL = "SELECT * FROM exchange_rates";
     public static final String ADD_NEW_EXCHANGE_RATE = "INSERT INTO exchange_rates (base_currency_id, target_currency_id, rate) VALUES (?, ?, ?);";
-    private static final String UPDATE_EXCHANGE_RATE = "UPDATE exchange_rates SET rate = ? WHERE id = ?";
+    private static final String UPDATE_EXCHANGE_RATE = """
+            UPDATE exchange_rates er
+            JOIN currencies base_curr ON er.base_currency_id = base_curr.id
+            JOIN currencies target_curr ON er.target_currency_id = target_curr.id
+            SET er.rate = ?
+            WHERE base_curr.code = ?
+            AND target_curr.code = ?
+            """;
     private static final String FIND_BY_CODE_PAIR = """
             SELECT er.id, er.base_currency_id, er.target_currency_id, er.rate
             FROM exchange_rates er
@@ -21,27 +29,30 @@ public class ExchangeRatesDao implements Dao<ExchangeRate> {
             INNER JOIN currencies target_curr ON er.target_currency_id = target_curr.id
             WHERE base_curr.code = ? AND target_curr.code = ?;
             """;
+    private static final int DUPLICATE_ERROR_CODE = 19;
 
     private ExchangeRatesDao() {
     }
 
     @Override
-    public List<ExchangeRate> findAll() throws SQLException {
+    public List<ExchangeRate> findAll() { //done
+        List<ExchangeRate> exchangeRates = new ArrayList<>();
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL);
             ResultSet resultSet = preparedStatement.executeQuery();
-            List<ExchangeRate> exchangeRates = new ArrayList<>();
             while (resultSet.next()) {
                 exchangeRates.add(buildExchangeRate(resultSet));
             }
             return exchangeRates;
+        } catch (SQLException e) {
+            throw new DatabaseException("Database is unavailable");
         }
     }
 
     @Override
-    public Optional<ExchangeRate> findByCode(String codePair) throws SQLException {
-        String baseCurrency = codePair.substring(0, 3);
-        String targetCurrency = codePair.substring(3);
+    public Optional<ExchangeRate> findByCode(RequestExchangeRateDto request) { //done
+        String baseCurrency = request.getBaseCurrency();
+        String targetCurrency = request.getTargetCurrency();
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE_PAIR);
             preparedStatement.setString(1, baseCurrency);
@@ -51,30 +62,38 @@ public class ExchangeRatesDao implements Dao<ExchangeRate> {
                 return Optional.of(buildExchangeRate(resultSet));
             }
             return Optional.empty();
+        } catch (SQLException e) {
+            throw new DatabaseException("Database is unavailable");
         }
     }
 
     @Override
-    public void add(ExchangeRate exchangeRate) throws SQLException {
-        try (Connection connection = ConnectionManager.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(ADD_NEW_EXCHANGE_RATE);
-            preparedStatement.setInt(1, exchangeRate.getBaseCurrencyId());
-            preparedStatement.setInt(2, exchangeRate.getTargetCurrencyId());
-            preparedStatement.setBigDecimal(3, exchangeRate.getRate());
-            preparedStatement.executeUpdate();
-        }
+    public void add(RequestExchangeRateDto request) {
+            try (Connection connection = ConnectionManager.getConnection()) {
+                PreparedStatement preparedStatement = connection.prepareStatement(ADD_NEW_EXCHANGE_RATE);
+                preparedStatement.setInt(1, Integer.parseInt(request.getBaseCurrency()));
+                preparedStatement.setInt(2, Integer.parseInt(request.getTargetCurrency()));
+                preparedStatement.setBigDecimal(3, request.getRate());
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                throw new DatabaseException("Database is unavailable");
+            }
     }
 
-    public void update(Integer id, String rate) throws SQLException {
+    public void update(RequestExchangeRateDto request) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_EXCHANGE_RATE)) {
-            preparedStatement.setBigDecimal(1, new BigDecimal(rate));
-            preparedStatement.setInt(2, id);
+            preparedStatement.setBigDecimal(1, request.getRate());
+            preparedStatement.setString(2, request.getBaseCurrency());
+            preparedStatement.setString(3, request.getTargetCurrency());
             preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Database is unavailable");
         }
     }
 
-    private ExchangeRate buildExchangeRate(ResultSet resultSet) throws SQLException {
+
+    private ExchangeRate buildExchangeRate(ResultSet resultSet) throws SQLException { // done
         return new ExchangeRate(resultSet.getInt(("id")),
                 resultSet.getInt("base_currency_id"),
                 resultSet.getInt("target_currency_id"),

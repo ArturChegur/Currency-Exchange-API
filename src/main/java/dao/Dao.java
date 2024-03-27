@@ -1,13 +1,12 @@
 package dao;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public interface Dao<T> {
-    List<T> findAll() throws SQLException;
+public interface Dao<T, E> {
+    List<T> findAll();
 
-    Optional<T> findByCode(String code) throws SQLException;
+    Optional<T> findByCode(E entity);
 
-    void add(T entity) throws SQLException;
+    void add(E entity);
 }
