@@ -29,13 +29,12 @@ public class ExchangeRatesDao implements Dao<ExchangeRate, RequestExchangeRateDt
             INNER JOIN currencies target_curr ON er.target_currency_id = target_curr.id
             WHERE base_curr.code = ? AND target_curr.code = ?;
             """;
-    private static final int DUPLICATE_ERROR_CODE = 19;
 
     private ExchangeRatesDao() {
     }
 
     @Override
-    public List<ExchangeRate> findAll() { //done
+    public List<ExchangeRate> findAll() {
         List<ExchangeRate> exchangeRates = new ArrayList<>();
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL);
@@ -50,13 +49,13 @@ public class ExchangeRatesDao implements Dao<ExchangeRate, RequestExchangeRateDt
     }
 
     @Override
-    public Optional<ExchangeRate> findByCode(RequestExchangeRateDto request) { //done
+    public Optional<ExchangeRate> findByCode(RequestExchangeRateDto request) {
         String baseCurrency = request.getBaseCurrency();
         String targetCurrency = request.getTargetCurrency();
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE_PAIR);
-            preparedStatement.setString(1, baseCurrency);
-            preparedStatement.setString(2, targetCurrency);
+            preparedStatement.setString(1, baseCurrency.toUpperCase());
+            preparedStatement.setString(2, targetCurrency.toUpperCase());
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 return Optional.of(buildExchangeRate(resultSet));
@@ -69,23 +68,23 @@ public class ExchangeRatesDao implements Dao<ExchangeRate, RequestExchangeRateDt
 
     @Override
     public void add(RequestExchangeRateDto request) {
-            try (Connection connection = ConnectionManager.getConnection()) {
-                PreparedStatement preparedStatement = connection.prepareStatement(ADD_NEW_EXCHANGE_RATE);
-                preparedStatement.setInt(1, Integer.parseInt(request.getBaseCurrency()));
-                preparedStatement.setInt(2, Integer.parseInt(request.getTargetCurrency()));
-                preparedStatement.setBigDecimal(3, request.getRate());
-                preparedStatement.executeUpdate();
-            } catch (SQLException e) {
-                throw new DatabaseException("Database is unavailable");
-            }
+        try (Connection connection = ConnectionManager.getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(ADD_NEW_EXCHANGE_RATE);
+            preparedStatement.setInt(1, Integer.parseInt(request.getBaseCurrency().toUpperCase()));
+            preparedStatement.setInt(2, Integer.parseInt(request.getTargetCurrency().toUpperCase()));
+            preparedStatement.setBigDecimal(3, request.getRate());
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Database is unavailable");
+        }
     }
 
     public void update(RequestExchangeRateDto request) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_EXCHANGE_RATE)) {
             preparedStatement.setBigDecimal(1, request.getRate());
-            preparedStatement.setString(2, request.getBaseCurrency());
-            preparedStatement.setString(3, request.getTargetCurrency());
+            preparedStatement.setString(2, request.getBaseCurrency().toUpperCase());
+            preparedStatement.setString(3, request.getTargetCurrency().toUpperCase());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new DatabaseException("Database is unavailable");
@@ -93,7 +92,7 @@ public class ExchangeRatesDao implements Dao<ExchangeRate, RequestExchangeRateDt
     }
 
 
-    private ExchangeRate buildExchangeRate(ResultSet resultSet) throws SQLException { // done
+    private ExchangeRate buildExchangeRate(ResultSet resultSet) throws SQLException {
         return new ExchangeRate(resultSet.getInt(("id")),
                 resultSet.getInt("base_currency_id"),
                 resultSet.getInt("target_currency_id"),
