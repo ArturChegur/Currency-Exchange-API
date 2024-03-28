@@ -30,11 +30,8 @@ public class ExchangeRateServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String path = req.getPathInfo().substring(1);
         RequestExchangeRateDto request = new RequestExchangeRateDto();
-        System.out.println(path);
         request.setBaseCurrency(path.substring(0, 3));
-        System.out.println(request.getBaseCurrency());
         request.setTargetCurrency(path.substring(3, 6));
-        System.out.println(request.getTargetCurrency());
         resp.getWriter().write(mapper.writeValueAsString(exchangeRateService.findByCode(request)));
     }
 

@@ -25,7 +25,7 @@ public class CurrenciesDao implements Dao<Currency, RequestCurrencyDto> {
     }
 
     @Override
-    public List<Currency> findAll() { // done
+    public List<Currency> findAll() {
         List<Currency> currencies = new ArrayList<>();
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL);
@@ -43,7 +43,7 @@ public class CurrenciesDao implements Dao<Currency, RequestCurrencyDto> {
     public Optional<Currency> findByCode(RequestCurrencyDto request) {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE);
-            preparedStatement.setObject(1, request.getCode());
+            preparedStatement.setObject(1, request.getCode().toUpperCase());
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 return Optional.of(buildCurrency(resultSet));
@@ -55,13 +55,13 @@ public class CurrenciesDao implements Dao<Currency, RequestCurrencyDto> {
     }
 
     @Override
-    public void add(RequestCurrencyDto request) { //done
+    public void add(RequestCurrencyDto request) {
         if (exists(request)) {
             throw new DataExistsException("Currency already exists");
         } else {
             try (Connection connection = ConnectionManager.getConnection()) {
                 PreparedStatement preparedStatement = connection.prepareStatement(ADD_NEW_CURRENCY);
-                preparedStatement.setString(1, request.getCode());
+                preparedStatement.setString(1, request.getCode().toUpperCase());
                 preparedStatement.setString(2, request.getName());
                 preparedStatement.setString(3, request.getSign());
                 preparedStatement.executeUpdate();
@@ -71,11 +71,11 @@ public class CurrenciesDao implements Dao<Currency, RequestCurrencyDto> {
         }
     }
 
-    private boolean exists(RequestCurrencyDto request) { // done
+    private boolean exists(RequestCurrencyDto request) {
         return findByCode(request).isPresent();
     }
 
-    public Optional<Currency> findCurrencyById(Integer id) { //done
+    public Optional<Currency> findCurrencyById(Integer id) {
         try (Connection connection = ConnectionManager.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID);
             preparedStatement.setObject(1, id);
@@ -89,7 +89,7 @@ public class CurrenciesDao implements Dao<Currency, RequestCurrencyDto> {
         }
     }
 
-    private Currency buildCurrency(ResultSet resultSet) throws SQLException { //done
+    private Currency buildCurrency(ResultSet resultSet) throws SQLException {
         return new Currency(resultSet.getInt("id"),
                 resultSet.getString("code"),
                 resultSet.getString("full_name"),
